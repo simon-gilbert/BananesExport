@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+
+  app:
+    build:
+      context: ../app
+      dockerfile: ../docker/Dockerfile
+    image: bananesexportapp:0.1
+    ports:
+      - 80:80
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - db
+    environment:
+      MYSQL_HOSTNAME: db
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: 
+    volumes:
+      - ../app:/var/www/html/
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql-root-password
+    volumes:
+      - db-data:/var/lib/mysql
+      - ../db:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+    secrets:
+      - mysql-root-password
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db-data:
+
+secrets:
+  mysql-root-password:
+    file: ./mysql-root-password.txt
